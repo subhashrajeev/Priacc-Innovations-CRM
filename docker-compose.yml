@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: priacc-crm-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: priacc_crm_hrms
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - priacc-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: priacc-crm-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/priacc_crm_hrms
+
+      # NextAuth
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: change-this-to-a-random-secret-in-production
+
+      # Email (Optional - configure as needed)
+      EMAIL_SERVER_HOST: smtp.sendgrid.net
+      EMAIL_SERVER_PORT: 587
+      EMAIL_SERVER_USER: apikey
+      EMAIL_SERVER_PASSWORD: your-sendgrid-api-key
+      EMAIL_FROM: noreply@priacc.com
+
+      # Company Info
+      COMPANY_NAME: Priacc Innovations Private Limited
+      COMPANY_ADDRESS: Hi-Tech City, Hyderabad, India
+      COMPANY_EMAIL: info@priacc.com
+
+      # App Config
+      NODE_ENV: production
+
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - priacc-network
+    volumes:
+      - ./public/uploads:/app/public/uploads
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  priacc-network:
+    driver: bridge
