@@ -108,9 +108,12 @@ const ToastDescription = React.forwardRef<
 ))
 ToastDescription.displayName = ToastPrimitives.Description.displayName
 
-type ToastActionElement = React.ReactElement<any>
+type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+
+type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
+  type ToastProps,
   type ToastActionElement,
   ToastProvider,
   ToastViewport,
